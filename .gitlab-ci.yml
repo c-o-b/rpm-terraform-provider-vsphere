@@ -1,0 +1,140 @@
+variables:
+  CREATEREPO_OPTS: -q -d
+
+stages:
+  - tools
+  - prereqs
+  - srpm
+  - buildreqs
+  - build
+  - register
+
+.macros: &macros
+    - |
+      cat <<-EOF> ${HOME}/.rpmmacros
+      %dis            el
+      %tro            %(rpm -qf --qf "%%{version}" /etc/issue | sed 's/\\.//g' )
+      %_topdir        %(pwd)
+
+      #  (S)RPMs go to the staging area
+      %_rpmdir       %{_topdir}/RPMS%{?apt:.%{apt}}
+      %_srcrpmdir    %{_topdir}/SRPMS%{?apt:.%{apt}}
+      
+      #  Builds occur in a standard space
+      %_builddir     /dev/shm/BUILD
+      
+      #  Source and Spec under cvs area
+      %_specdir      %{_topdir}/SPECS
+      %_sourcedir    %{_topdir}/SOURCES
+
+      %_build_name_fmt    %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm
+
+      EOF
+
+.tags:
+  tags:
+    - cob-it
+    - rpm-build
+  before_script:
+    - *macros
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - ./SOURCES/
+    - ./SRPMS/
+    - ./SPECS/
+    - ./RPMS/
+
+tools:
+  extends: .tags
+  stage: tools
+  script:
+    - |
+      sudo -n yum install -y rpm-build rpmdevtools
+
+# go-build messes with your tree.  Russ Cox is clueless
+# GO BUILD DOESN'T OWN MY TREE.  LEAVE IT THE HELL ALONE
+scorch BUILD:
+  extends: .tags
+  stage: prereqs
+  script:
+    - |
+      chmod -fR u+w BUILD/* $(rpm --eval '%_builddir') ||:
+      rm -rf BUILD/* $(rpm --eval '%_builddir') ||:
+
+scorch RPMs:
+  extends: .tags
+  stage: prereqs
+  script:
+    - |
+      rm -rf $(rpm --eval '%_rpmdir')/*.rpm ||:
+      rm -rf $(rpm --eval '%_srcrpmdir')/*.rpm ||:
+
+get source:
+  extends: .tags
+  stage: prereqs
+  script:
+    - |
+      mkdir -p $(rpm --eval '%_sourcedir') \
+               $(rpm --eval '%_rpmdir') \
+               $(rpm --eval '%_srcrpmdir') \
+               $(rpm --eval '%_builddir') \
+               $(rpm --eval '%_specdir') # yeesh
+      spectool -g -R *.spec
+
+build SRPM:
+  extends: .tags
+  stage: srpm
+  script:
+    - |
+      find S* R* -ls
+      rpmbuild -bs *.spec 
+  artifacts:
+    paths:
+      - SRPMS/*.src.rpm
+    expire_in: 1 week
+
+get BUILD pre-reqs:
+  extends: .tags
+  stage: buildreqs
+  script:
+    - |
+      sudo -n yum-builddep -y *.spec --nogpgcheck
+  artifacts:
+    paths:
+    - SRPMS/  
+
+build RPM:
+  extends: .tags
+  stage: build
+  script:
+    - |
+      rpmbuild -bb *.spec 
+  artifacts:
+    paths:
+    - SRPMS/
+    - RPMS/
+
+repo:
+  tags:
+    - repo
+    - cob-it
+  stage: register
+  before_script:
+    - *macros
+    - sudo -n yum install -y createrepo --nogpgcheck
+  script:
+    - |
+      TREE=${CI_COMMIT_REF_SLUG}/$(rpm --eval "%dis/%tro")
+      PUBROOT=~/public_html/${TREE}/
+      mkdir -p ${PUBROOT}
+      # push any artifacts to service dir
+      find . \
+        -name \*RPMS -type d \
+        -exec rsync -av {} ${PUBROOT} \;
+      # createrepo the lot
+      find ${PUBROOT} \
+        -name \*RPMS -type d \
+        -exec createrepo ${CREATEREPO_OPTS:-} ${ADDL_OPTS:-} {} \;
+  artifacts: {}
