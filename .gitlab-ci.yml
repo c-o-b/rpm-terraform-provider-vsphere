@@ -11,9 +11,11 @@ stages:
 
 .macros: &macros
     - |
-      cat <<-EOF> ${HOME}/.rpmmacros
+      sed "
+        s/TRO/$(rpm -qf --qf "%{version}" /etc/issue | sed 's/\\.//g' )/
+      " <<-EOF> ${HOME}/.rpmmacros
       %dis            el
-      %tro            %(rpm -qf --qf "%%{version}" /etc/issue | sed 's/\\.//g' )
+      %tro            TRO
       %_topdir        %(pwd)
 
       #  (S)RPMs go to the staging area
