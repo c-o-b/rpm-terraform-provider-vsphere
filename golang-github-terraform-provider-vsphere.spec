@@ -29,7 +29,8 @@
 %global	debug_package	%{nil}
 
 Name:		golang-github-%{repo}
-Summary:	Terraform provider for vSphere
+%global	summary	Terraform provider for vSphere
+Summary:	%{summary}
 
 Version:	%{version}
 Release:	%{release}
@@ -50,7 +51,7 @@ Terraform provider for vSphere
 
 
 %package v12
-Summary:	%{Summary} for v12
+Summary:	%{summary} for v12
 Group:		%{group}
 %description v12
 This package works with terraform up to v0.12
@@ -60,7 +61,7 @@ Obsoletes:	%{name}
 
 
 %package	v13
-Summary:	%{Summary} for v13+
+Summary:	%{summary} for v13+
 Group:		%{group}
 %description v13
 This package works with Terraform 'minor' release 0.13 and up
