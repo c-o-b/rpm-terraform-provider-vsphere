@@ -56,6 +56,7 @@ Group:		%{group}
 This package works with terraform up to v0.12
 Requires:	terraform < 0.13.0
 Provides:	%{repo}
+Obsoletes:	%{name}
 
 
 %package	v13
@@ -65,6 +66,7 @@ Group:		%{group}
 This package works with Terraform 'minor' release 0.13 and up
 Requires:	terraform >= 0.13.0
 Provides:	%{repo}
+Obsoletes:	%{name}
 
 
 %prep
@@ -120,6 +122,9 @@ ln \
 
 # %(date +"%a %b %d %Y") $Author: build $ %{version}-%{release}
 %changelog
+* Thu Sep 10 2020 Bishop Clark <bishopolis@gmail.com> - 1.14.0-2.1
+- obsolete the older package
+
 * Sun Sep 06 2020 Bishop Clark <bishopolis@gmail.com> - 1.14.0-2.0
 - build sub-packages fro both (incompatible) desployments \sigh #GoLF
 
