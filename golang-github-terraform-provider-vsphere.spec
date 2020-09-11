@@ -123,6 +123,9 @@ ln \
 
 # %(date +"%a %b %d %Y") $Author: build $ %{version}-%{release}
 %changelog
+* Thu Sep 10 2020 Bishop Clark <bishopolis@gmail.com> - 1.14.0-2.2
+- issue with the summary macro
+
 * Thu Sep 10 2020 Bishop Clark <bishopolis@gmail.com> - 1.14.0-2.1
 - obsolete the older package
 
