@@ -13,7 +13,7 @@
 %global	regos	%{_target_os}
 
 %global	version	1.14.0
-%global	release	1.1
+%global	release	2.1
 
 # emulate mock bubblewrap dependency; delete with proper source
 %if %{?rhel:0}%{!?rhel:1}
