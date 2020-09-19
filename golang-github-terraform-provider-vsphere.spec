@@ -13,7 +13,7 @@
 %global	regos	%{_target_os}
 
 %global	version	1.14.0
-%global	release	2.2
+%global	release	2.6
 
 # emulate mock bubblewrap dependency; delete with proper source
 %if %{?rhel:0}%{!?rhel:1}
@@ -57,7 +57,8 @@ Group:		%{group}
 This package works with terraform up to v0.12
 Requires:	terraform < 0.13.0
 Provides:	%{repo}
-Obsoletes:	%{name}
+Provides:	golang-github-%{repo}
+Obsoletes:	golang-github-%{repo} <= %{version}
 
 
 %package	v13
@@ -67,8 +68,8 @@ Group:		%{group}
 This package works with Terraform 'minor' release 0.13 and up
 Requires:	terraform >= 0.13.0
 Provides:	%{repo}
-Obsoletes:	%{name}
-
+Provides:	golang-github-%{repo}
+Obsoletes:	golang-github-%{repo} <= %{version}
 
 %prep
 %setup -q -n %{dir}
@@ -123,6 +124,9 @@ ln \
 
 # %(date +"%a %b %d %Y") $Author: build $ %{version}-%{release}
 %changelog
+* Fri Sep 18 2020 Bishop Clark <bishopolis@gmail.com> - 1.14.0-2.6
+- #obsoletes harder obsoletes with a vengance
+
 * Thu Sep 10 2020 Bishop Clark <bishopolis@gmail.com> - 1.14.0-2.2
 - issue with the summary macro
 
